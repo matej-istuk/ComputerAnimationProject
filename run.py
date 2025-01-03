@@ -1,9 +1,15 @@
 import pyglet
 
-from pygletgui import SimulationWindow
-from simulation import Simulation
+from gui.opengl.app import SimulationWindow
+from simulation import Simulation, Fabric
 
-simulation = Simulation((10, 15))
+fabric = Fabric((10, 15))
+simulation = Simulation(fabric)
+
+fabric.set_static(0, 0)
+fabric.set_static(-1, 0)
+fabric.set_static(0, -1)
+fabric.set_static(-1, -1)
 
 try:
     config = pyglet.gl.Config(sample_buffers=1, samples=4,

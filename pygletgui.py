@@ -3,7 +3,7 @@ from typing import Tuple, List
 
 import pyglet
 
-from renderutils import indices_for_simulation
+from renderutils import gen_indices
 from simulation import Simulation
 
 CAPTION = "ClothSim"
@@ -27,7 +27,7 @@ class SimulationWindow(pyglet.window.Window):
         super().__init__(self._window_width, self._window_height, CAPTION, resizable=True, *args, **kwargs)
         self._simulation = simulation
         for static_point in static_points:
-            self._simulation.set_static(*static_point)
+            self._simulation.fabric.set_static(*static_point)
         self._background_color = background_color
         self._cloth_color = cloth_color
         self._background_color = background_color
@@ -36,7 +36,7 @@ class SimulationWindow(pyglet.window.Window):
         self._ry = 180
         self._rz = 180
 
-        indices = indices_for_simulation(self._simulation)
+        indices = gen_indices(self._simulation.fabric)
         self._indices = (GLuint * len(indices))(*indices)
         self._opengl_setup()
 
@@ -79,17 +79,17 @@ class SimulationWindow(pyglet.window.Window):
         self._simulation.update(delta_time)
 
     def on_draw(self):
-        points_cpu = self._simulation.points.get().flatten()
-        normals_cpu = self._simulation.normals.get().flatten()
+        points_cpu = self._simulation.fabric.points.get().flatten()
+        normals_cpu = self._simulation.fabric.normals.get().flatten()
         vertices = (GLfloat * points_cpu.shape[0])(*points_cpu)
         normals = (GLfloat * normals_cpu.shape[0])(*normals_cpu)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        glTranslatef(-0.5, 0.5, -2.5)
         glRotatef(self._rz, 0, 0, 1)
         glRotatef(self._ry, 0, 1, 0)
         glRotatef(self._rx, 1, 0, 0)
+        glTranslatef(-0.5, 0.5, -2.5)
 
         l = glGenLists(1)
         glNewList(l, GL_COMPILE)

@@ -33,7 +33,7 @@ class SimulationWindow(pyglet.window.Window):
         self._margins = ((self._window_height - self._initial_size) // 2, (self._window_width - self._initial_size) // 2)
         self._simulation = simulation
         for static_point in static_points:
-            self._simulation.set_static(*static_point)
+            self._simulation.fabric.set_static(*static_point)
         self._batch = pyglet.graphics.Batch()
         self._background = pyglet.shapes.Rectangle(0, 0, self._window_width, self._window_height, batch=self._batch)
         self._background.color = background_color
@@ -48,17 +48,17 @@ class SimulationWindow(pyglet.window.Window):
 
     def on_draw(self):
         self.clear()
-        points_cpu = self._simulation.points.get()
+        points_cpu = self._simulation.fabric.points.get()
         points_cpu = points_cpu
         points_cpu[..., 0] = self._margins[1] + points_cpu[..., 0] * self._initial_size
         points_cpu[..., 1] = self._window_height - (self._margins[0] + points_cpu[..., 1] * self._initial_size)
-        draw_cloth(points_cpu.astype(np.int32), self._simulation.static, self._simulation.connections, self._cloth_color, self.renderer)
+        draw_cloth(points_cpu.astype(np.int32), self._simulation.fabric.static, self._simulation.fabric.connections, self._cloth_color, self.renderer)
         self._batch.draw()
         self.fps_display.draw()
         self.renderer.clear()
 
     def on_close(self):
-        export_to_obj(self._simulation)
+        export_to_obj(self._simulation.fabric)
         self.close()
 
 class PygletRenderer(Renderer):

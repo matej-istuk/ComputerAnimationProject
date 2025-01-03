@@ -1,8 +1,5 @@
-import numpy as np
-from numpy.ma.core import indices
-
 from renderer import Renderer
-from simulation import Simulation
+from simulation import Fabric
 
 
 def draw_cloth(points, static_mask, connections_mask, color, renderer: Renderer):
@@ -16,28 +13,28 @@ def draw_cloth(points, static_mask, connections_mask, color, renderer: Renderer)
             renderer.draw_point(points[i, j, 0], points[i, j, 1], color, size)
 
 
-def indices_for_simulation(simulation: Simulation):
-    indices = []
-    height = simulation.points.shape[0]
-    width = simulation.points.shape[1]
+def gen_indices(fabric: Fabric):
+    inds = []
+    height = fabric.points.shape[0]
+    width = fabric.points.shape[1]
     for i in range(height - 1):
         for j in range(width - 1):
-            indices.extend([
+            inds.extend([
                 i*width+j,
                 i*width+j+1,
                 (i+1)*width+j,
             ])
-            indices.extend([
+            inds.extend([
                 i*width+j+1,
                 (i+1)*width+j+1,
                 (i+1)*width+j,
             ])
-    return indices
+    return inds
 
-def export_to_obj(simulation: Simulation):
-    vertices = simulation.points.get().reshape((-1, 3))
-    normals = simulation.normals.get().reshape((-1, 3))
-    inds = indices_for_simulation(simulation)
+def export_to_obj(fabric: Fabric):
+    vertices = fabric.points.get().reshape((-1, 3))
+    normals = fabric.normals.get().reshape((-1, 3))
+    inds = gen_indices(fabric)
 
     for vertex in vertices:
         print(f'v {vertex[0]:.3f} {vertex[1]:.3f} {vertex[2]:.3f}')
