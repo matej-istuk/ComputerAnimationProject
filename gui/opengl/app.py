@@ -7,6 +7,7 @@ from typing import Tuple, List
 import pyglet
 
 from gui.opengl.rendering.camera import Camera
+from gui.opengl.rendering.object3d import Object3D
 from renderutils import gen_indices
 from gui.opengl.rendering.shader import Shader
 from simulation import Simulation, Fabric
@@ -42,8 +43,8 @@ class SimulationWindow(pyglet.window.Window):
         self._renderer.draw()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        self._renderer.camera.rotate_x(dy * 0.5)
-        self._renderer.camera.rotate_z(dx * 0.5)
+        self._renderer.fabric_model.local_rotate((dy * 0.01, 0, 0))
+        self._renderer.fabric_model.global_rotate((0, dx * 0.01, 0))
 
 class FabricSceneRenderer:
     def __init__(self,
@@ -52,14 +53,26 @@ class FabricSceneRenderer:
                  fragment_shader_location: str,
                  background_color: Tuple[int, int, int],
                  camera: Camera = None,
-                 model_matrix: List[List[float]] = None,
+                 fabric_model: Object3D = None,
                  ):
-        if model_matrix is None:
-            model_matrix = np.identity(4, dtype=np.float32)
         if camera is None:
-            camera = Camera(np.array([2, 0, 2]), np.array([0, 0, 0]), np.array([0, -1, 0]), 60, 1, 0.1, 10)
+            camera = Camera((0, 0, -1, 0),
+                            (0, -1, 0, 0),
+                            (1, 0, 0, 0),
+                            (0, 0, 2, 0),
+                            (1, 1, 1, 0),
+                            (0, 0, 0),
+                            60, 1, 0.1, 10)
+        if fabric_model is None:
+            fabric_model = Object3D(
+                (0, 0, 1, 0),
+                (0, 1, 0, 0),
+                (1, 0, 0, 0),
+                (0, 0, 0, 0),
+                (1, 1, 1, 0),
+            )
         self.camera = camera
-        self._model_matrix = np.array(model_matrix)
+        self.fabric_model = fabric_model
 
         self._background_color = background_color
 
@@ -115,7 +128,7 @@ class FabricSceneRenderer:
         self._shader.use()
         self._shader.set_uniform_mat4('view_matrix', self.camera.view_matrix)
         self._shader.set_uniform_mat4('perspective_matrix', self.camera.perspective_matrix)
-        self._shader.set_uniform_mat4('model_matrix', self._model_matrix)
+        self._shader.set_uniform_mat4('model_matrix', self.fabric_model.model_matrix)
 
         self._update_vao()
         glBindVertexArray(self._vao)
