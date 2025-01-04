@@ -1,21 +1,27 @@
+import hydra
+from hydra.utils import instantiate
+from omegaconf import DictConfig
 import pyglet
 
 from gui.opengl.app import SimulationWindow
-from simulation import Simulation, Fabric
+from simulation.simulation import Simulation, Fabric
 
-fabric = Fabric((10, 15))
-simulation = Simulation(fabric)
+@hydra.main(version_base=None, config_path="conf", config_name="basic")
+def main(cfg: DictConfig):
+    fabric = instantiate(cfg.fabric)
+    simulation = instantiate(cfg.simulation, fabric=fabric)
 
-fabric.set_static(0, 0)
-fabric.set_static(-1, 0)
-fabric.set_static(0, -1)
-fabric.set_static(-1, -1)
+    for i in range(0, fabric.points.shape[0], 3):
+        fabric.set_static(i, 0)
 
-try:
-    config = pyglet.gl.Config(sample_buffers=1, samples=4,
-                    depth_size=16, double_buffer=True, )
-    main_window = SimulationWindow(simulation, config=config)
-except pyglet.window.NoSuchConfigException:
-    main_window = SimulationWindow(simulation)
+    try:
+        config = pyglet.gl.Config(sample_buffers=1, samples=4,
+                        depth_size=16, double_buffer=True, )
+        SimulationWindow(simulation, config=config)
+    except pyglet.window.NoSuchConfigException:
+        SimulationWindow(simulation)
 
-pyglet.app.run()
+    pyglet.app.run()
+
+if __name__ == '__main__':
+    main()

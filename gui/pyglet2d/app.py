@@ -1,12 +1,11 @@
-import time
 from typing import Tuple, List
 
 import numpy as np
 import pyglet
 
-from renderer import Renderer
-from renderutils import draw_cloth, export_to_obj
-from simulation import Simulation
+from renderer import Renderer, draw_cloth
+from gui.opengl.rendering.renderutils import export_to_obj
+from simulation.simulation import Simulation
 
 CAPTION = "ClothSim"
 

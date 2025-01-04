@@ -77,4 +77,4 @@ class Object3D:
         self._position = translation_matrix(np.array(move)) @ self._position
 
     def do_scale(self, scale: Tuple[float, float, float]):
-        self._scale = np.diag(np.array([*scale, 1])) * self._scale
+        self._scale = np.diag(np.array([*scale, 1])) @ self._scale

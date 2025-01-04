@@ -1,16 +1,15 @@
 import ctypes
 
-import numpy as np
 from pyglet.gl import *
-from typing import Tuple, List
+from typing import Tuple
 
 import pyglet
 
 from gui.opengl.rendering.camera import Camera
 from gui.opengl.rendering.object3d import Object3D
-from renderutils import gen_indices
+from gui.opengl.rendering.renderutils import gen_indices
 from gui.opengl.rendering.shader import Shader
-from simulation import Simulation, Fabric
+from simulation.simulation import Simulation, Fabric
 
 CAPTION = "Fabric Simulator"
 
@@ -43,8 +42,10 @@ class SimulationWindow(pyglet.window.Window):
         self._renderer.draw()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        self._renderer.fabric_model.local_rotate((dy * 0.01, 0, 0))
-        self._renderer.fabric_model.global_rotate((0, dx * 0.01, 0))
+        self._renderer.fabric_model.local_rotate((0, dx * 0.01, 0))
+
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: float, scroll_y: float) -> None:
+        self._renderer.fabric_model.do_scale((1 + scroll_y / 100, 1 + scroll_y / 100, 1 + scroll_y / 100))
 
 class FabricSceneRenderer:
     def __init__(self,

@@ -3,7 +3,8 @@ from typing import Tuple
 
 import cupy as cp
 
-from fabric import Fabric
+from simulation.fabric import Fabric
+
 
 class Simulation:
     def __init__(self,
@@ -41,7 +42,7 @@ class Simulation:
 
         self.fabric.forces += self._wind_constant * (cp.sum(self.fabric.normals * (self._wind_speed - self.fabric.velocities), axis=-1))[..., None] * self.fabric.normals
 
-        self.fabric.forces += -self.fabric.velocities * self._dampening
+        self.fabric.forces = self.fabric.forces - self.fabric.velocities * self._dampening
 
         self.fabric.forces = self.fabric.forces * self.fabric.not_static[..., None]
         self.fabric.accelerations = self.fabric.forces * self.fabric.inv_masses[..., None]
@@ -49,13 +50,14 @@ class Simulation:
         self.fabric.normals = self.fabric.calculate_normals()
 
     def _improved_integrate(self, delta_time: float):
-        self.fabric.velocities = self.fabric.points - self.fabric.old_points
+        delta_points = self.fabric.points - self.fabric.old_points
         self.fabric.old_points = self.fabric.points.copy()
         dt = delta_time / self._old_delta_time
-        self.fabric.points = self.fabric.points + dt * self.fabric.velocities + self.fabric.accelerations * (delta_time * (delta_time + self._old_delta_time) / 2)
+        self.fabric.points = self.fabric.points + dt * delta_points + self.fabric.accelerations * (delta_time * (delta_time + self._old_delta_time) / 2)
         self._old_delta_time = delta_time
 
         self.fabric.accelerations = cp.zeros_like(self.fabric.accelerations)
+        self.fabric.velocities = delta_points / delta_time
         self.fabric.forces = cp.zeros_like(self.fabric.forces)
 
 if __name__ == '__main__':
