@@ -34,6 +34,8 @@ class Fabric:
         self.rest_lengths = self.connection_distances()
         self.normals = self.calculate_normals()
 
+        self.points_num = self.points.shape[0] * self.points.shape[1]
+
     @property
     def static(self):
         return 1 - self.not_static

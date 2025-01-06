@@ -1,6 +1,6 @@
 _target_: simulation.fabric.Fabric
 dims: [10, 20]
 mass: 1
-connection_strengths: [10., 10., 10.]
+connection_strengths: [2500., 25000., 25000.]
 break_ratio: 200
 center: True

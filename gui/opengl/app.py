@@ -1,13 +1,18 @@
 import ctypes
+import math
+from distutils.log import fatal
 
+import numpy as np
 from pyglet.gl import *
-from typing import Tuple
+from typing import Tuple, List
 
 import pyglet
 
 from gui.opengl.rendering.camera import Camera
+from gui.opengl.rendering.light import Light
+from gui.opengl.rendering.material import Material
 from gui.opengl.rendering.object3d import Object3D
-from gui.opengl.rendering.renderutils import gen_indices
+from gui.opengl.rendering.renderutils import gen_indices, export_to_obj
 from gui.opengl.rendering.shader import Shader
 from simulation.simulation import Simulation, Fabric
 
@@ -20,23 +25,35 @@ class SimulationWindow(pyglet.window.Window):
                  window_height: int = 900,
                  window_width: int = 1200,
                  ups: int = 60,
+                 speedup: float = 1.,
                  background_color: Tuple[int, int, int] = (0.8, 0.8, 0.8),
-                 cloth_color: Tuple[int, int, int] = (0, 0, 255),
+                 fabric_material: Material = None,
+                 constant_sim_update: bool = True,
+                 app_config = None,
                  *args, **kwargs
                  ):
+        if fabric_material is None:
+            fabric_material = Material()
         self._window_height = window_height
         self._window_width = window_width
-        super().__init__(self._window_width, self._window_height, CAPTION, resizable=True, *args, **kwargs)
+        super().__init__(self._window_width, self._window_height, CAPTION, resizable=True, config=app_config, *args, **kwargs)
         self._simulation = simulation
         self._background_color = background_color
-        self._cloth_color = cloth_color
+        self._speedup = speedup
+        self._inv_ups = 1.0 / ups
+        self._constant_sim_update = constant_sim_update
 
-        self._renderer = FabricSceneRenderer(self._simulation.fabric, 'shaders/shader_mesh.vert', 'shaders/shader_mesh.frag', background_color)
+        self._renderer = FabricSceneRenderer(self._simulation.fabric,
+                                             [('shaders/shader_mesh.vert', 'shaders/shader_mesh.frag', GL_LINE),
+                                              ('shaders/shader_material.vert', 'shaders/shader_material.frag', GL_FILL)],
+                                             background_color, fabric_material=fabric_material)
 
-        pyglet.clock.schedule_interval(self.update, 1.0 / ups)
+        pyglet.clock.schedule_interval(self.update, self._inv_ups)
 
     def update(self, delta_time: float):
-        self._simulation.update(delta_time)
+        if self._constant_sim_update:
+            delta_time = self._inv_ups
+        self._simulation.update(delta_time * self._speedup)
 
     def on_draw(self):
         self._renderer.draw()
@@ -47,14 +64,26 @@ class SimulationWindow(pyglet.window.Window):
     def on_mouse_scroll(self, x: int, y: int, scroll_x: float, scroll_y: float) -> None:
         self._renderer.fabric_model.do_scale((1 + scroll_y / 100, 1 + scroll_y / 100, 1 + scroll_y / 100))
 
+    def on_key_press(self, symbol: int, modifiers: int) -> None:
+        if symbol == pyglet.window.key.M:
+            self._renderer.change_shader()
+        if symbol == pyglet.window.key.F:
+            self._speedup *= 1.1
+        if symbol == pyglet.window.key.S:
+            self._speedup *= 0.9
+        if symbol == pyglet.window.key.E:
+            export_to_obj(self._simulation.fabric)
+
+
 class FabricSceneRenderer:
     def __init__(self,
                  fabric: Fabric,
-                 vertex_shader_location: str,
-                 fragment_shader_location: str,
+                 shader_descriptors: List[Tuple[str, str, int]],
                  background_color: Tuple[int, int, int],
                  camera: Camera = None,
                  fabric_model: Object3D = None,
+                 fabric_material: Material = None,
+                 lights: List[Light] = None,
                  ):
         if camera is None:
             camera = Camera((0, 0, -1, 0),
@@ -72,12 +101,27 @@ class FabricSceneRenderer:
                 (0, 0, 0, 0),
                 (1, 1, 1, 0),
             )
+        if lights is None:
+            lights = [
+                Light(position=(0, 1, -2, 1)),
+                Light(position=(0, 1, 2, 1)),
+
+            ]
+        if fabric_material is None:
+            fabric_material = Material()
+
         self.camera = camera
         self.fabric_model = fabric_model
+        self.lights = lights
+        self.fabric_material = fabric_material
 
         self._background_color = background_color
 
-        self._shader = Shader(vertex_shader_location, fragment_shader_location)
+        self._shader_mode = 1
+        self._shaders = []
+        for shader_descriptor in shader_descriptors:
+            self._shaders.append(Shader(shader_descriptor[0], shader_descriptor[1], shader_descriptor[2]))
+
         self._fabric = fabric
         indices = gen_indices(self._fabric)
         self._indicesGl = (GLint * len(indices))(*indices)
@@ -122,17 +166,51 @@ class FabricSceneRenderer:
 
         glBindVertexArray(0)
 
+    def change_shader(self):
+        self._shader_mode = (self._shader_mode + 1) % len(self._shaders)
+
+    @property
+    def shader(self):
+        return self._shaders[self._shader_mode]
 
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        self._shader.use()
-        self._shader.set_uniform_mat4('view_matrix', self.camera.view_matrix)
-        self._shader.set_uniform_mat4('perspective_matrix', self.camera.perspective_matrix)
-        self._shader.set_uniform_mat4('model_matrix', self.fabric_model.model_matrix)
+        self.shader.use()
+        self.shader.set_uniform_mat4('view_matrix', self.camera.view_matrix)
+        self.shader.set_uniform_mat4('perspective_matrix', self.camera.perspective_matrix)
+        self.shader.set_uniform_mat4('model_matrix', self.fabric_model.model_matrix)
+
+        self.shader.set_uniform_vec4("eye_pos", self.camera.position)
+        self.shader.set_uniform_vec3("material_ambient", self.fabric_material.ambient_coefficient)
+        self.shader.set_uniform_vec3("material_diffuse", self.fabric_material.diffuse_coefficient)
+        self.shader.set_uniform_vec3("material_specular", self.fabric_material.specular_coefficient)
+        self.shader.set_uniform_float("material_reflective", self.fabric_material.shininess_exponent)
+
+        light_positions = []
+        light_ambient = []
+        light_diffuse = []
+        light_specular = []
+
+        for light in self.lights:
+            light_positions.extend(light.position)
+            light_ambient.extend(light.ambient_intensity)
+            light_diffuse.extend(light.diffuse_intensity)
+            light_specular.extend(light.specular_intensity)
+
+        light_positions = np.array(light_positions)
+        light_ambient = np.array(light_ambient)
+        light_diffuse = np.array(light_diffuse)
+        light_specular = np.array(light_specular)
+
+        self.shader.set_uniform_int("lights_count", len(self.lights))
+        self.shader.set_uniform_vec4s("lights_pos", light_positions, len(self.lights))
+        self.shader.set_uniform_vec3s("lights_ambient", light_ambient, len(self.lights))
+        self.shader.set_uniform_vec3s("lights_diffuse", light_diffuse, len(self.lights))
+        self.shader.set_uniform_vec3s("lights_specular", light_specular, len(self.lights))
 
         self._update_vao()
         glBindVertexArray(self._vao)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glPolygonMode(GL_FRONT_AND_BACK, self.shader.mode)
         glDrawElements(GL_TRIANGLES, len(self._indicesGl), GL_UNSIGNED_INT, 0)
         glBindVertexArray(0)

@@ -1,0 +1,5 @@
+_target_: gui.opengl.rendering.material.Material
+ambient_coefficient: [0.4, 0.3, 0.2]
+diffuse_coefficient: [0.794, 0.64, 0.409]
+specular_coefficient: [0.1, 0.1, 0.1]
+shininess_exponent: 0.1

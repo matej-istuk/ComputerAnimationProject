@@ -1,0 +1,3 @@
+_target_: simulation.util.StaticPointSetter
+height_iterable: [0]
+specific_points: [[-1, 0], [-1, -1]]

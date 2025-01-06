@@ -1,0 +1,6 @@
+defaults:
+  - fabric: medium
+  - simulation: medium_wind
+  - static_point_setter: one_side
+  - material: linen
+  - app: opengl240ups

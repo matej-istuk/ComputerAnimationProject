@@ -1,4 +1,5 @@
 import time
+from distutils.spawn import spawn
 from typing import Tuple
 
 import cupy as cp
@@ -13,7 +14,8 @@ class Simulation:
                  wind_speed: Tuple[float, float, float] = (0, 0, 1),
                  wind_constant: float = 0.02,
                  dampening: float = 1,
-                 epsilon: float = 1e-10
+                 epsilon: float = 1e-10,
+                 speed: float = 1.
                  ):
         self.fabric = fabric
         self._gravity = gravity
@@ -25,7 +27,10 @@ class Simulation:
         self._wind_speed = cp.array(wind_speed)
         self._wind_constant = wind_constant
 
+        self._speed = speed
+
     def update(self, delta_time: float):
+        delta_time *= self._speed
         self.fabric.forces = cp.zeros_like(self.fabric.points)
         self.fabric.forces[..., 1] = self.fabric.forces[..., 1] + self._gravity * self.fabric.masses
 
@@ -44,7 +49,7 @@ class Simulation:
 
         self.fabric.forces = self.fabric.forces - self.fabric.velocities * self._dampening
 
-        self.fabric.forces = self.fabric.forces * self.fabric.not_static[..., None]
+        self.fabric.forces = self.fabric.forces * self.fabric.not_static[..., None] / self.fabric.points_num
         self.fabric.accelerations = self.fabric.forces * self.fabric.inv_masses[..., None]
         self._improved_integrate(delta_time)
         self.fabric.normals = self.fabric.calculate_normals()
@@ -59,6 +64,9 @@ class Simulation:
         self.fabric.accelerations = cp.zeros_like(self.fabric.accelerations)
         self.fabric.velocities = delta_points / delta_time
         self.fabric.forces = cp.zeros_like(self.fabric.forces)
+
+    def change_speed(self, speed: float):
+        self._speed *= speed
 
 if __name__ == '__main__':
     iters = 1000

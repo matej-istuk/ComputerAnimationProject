@@ -1,7 +1,7 @@
 _target_: simulation.simulation.Simulation
 gravity: 1
 wind_speed: [0, -0.5, 1]
-wind_constant: 5
+wind_constant: 100
 dampening: 100
 epsilon: 1e-10
 speed: 1

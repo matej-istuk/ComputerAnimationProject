@@ -7,11 +7,21 @@ from gui.opengl.rendering.utils import rotation_matrix, translation_matrix
 
 class Object3D:
     def __init__(self,
-                 front: Tuple[float, float, float, float],
-                 up: Tuple[float, float, float, float],
-                 right: Tuple[float, float, float, float],
-                 position: Tuple[float, float, float, float],
-                 scale: Tuple[float, float, float, float]):
+                 front: Tuple[float, float, float, float] = None,
+                 up: Tuple[float, float, float, float] = None,
+                 right: Tuple[float, float, float, float] = None,
+                 position: Tuple[float, float, float, float] = None,
+                 scale: Tuple[float, float, float, float] = None):
+        if front is None:
+            front = (0, 0, 1, 0)
+        if up is None:
+            up = (0, 1, 0, 0)
+        if right is None:
+            right = (1, 0, 0, 0)
+        if position is None:
+            position = (0, 0, 0, 1)
+        if scale is None:
+            scale = (1, 1, 1, 0)
         self._front = np.array(front)
         self._up = np.array(up)
         self._right = np.array(right)

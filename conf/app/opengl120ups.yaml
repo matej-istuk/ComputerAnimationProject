@@ -1,0 +1,6 @@
+_target_: gui.opengl.app.SimulationWindow
+window_height: 900
+window_width: 1200
+ups: 120
+speedup: 2.
+background_color: [0.8, 0.8, 0.8]
