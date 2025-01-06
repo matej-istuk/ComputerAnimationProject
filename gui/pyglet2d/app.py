@@ -20,6 +20,7 @@ class SimulationWindow(pyglet.window.Window):
                  cloth_color: Tuple[int, int, int] = (255, 255, 255),
                  static_points: List[Tuple[int, int]] = None,
                  minimal_margin: int = 100,
+                 app_config = None,
                  *args, **kwargs
                  ):
         if static_points is None:
@@ -27,7 +28,7 @@ class SimulationWindow(pyglet.window.Window):
         self._minimal_margin = minimal_margin
         self._window_height = window_height
         self._window_width = window_width
-        super().__init__(self._window_width, self._window_height, CAPTION, resizable=True, *args, **kwargs)
+        super().__init__(self._window_width, self._window_height, CAPTION, resizable=True, config=app_config, *args, **kwargs)
         self._initial_size = min(window_width, window_height) - 2 * self._minimal_margin
         self._margins = ((self._window_height - self._initial_size) // 2, (self._window_width - self._initial_size) // 2)
         self._simulation = simulation

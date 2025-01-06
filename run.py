@@ -1,3 +1,5 @@
+import os
+
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -27,4 +29,5 @@ def main(cfg: DictConfig):
     pyglet.app.run()
 
 if __name__ == '__main__':
+    os.environ['HYDRA_FULL_ERROR'] = '1'
     main()
