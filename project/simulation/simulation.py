@@ -3,7 +3,7 @@ from typing import Tuple
 
 import cupy as cp
 
-from project.simulation.fabric import Fabric
+from simulation.fabric import Fabric
 
 
 class Simulation:

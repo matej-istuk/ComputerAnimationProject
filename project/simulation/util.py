@@ -1,6 +1,6 @@
 from typing import Iterable, List, Tuple
 
-from project.simulation.fabric import Fabric
+from simulation.fabric import Fabric
 
 
 class StaticPointSetter:
