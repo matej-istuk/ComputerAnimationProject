@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from gui.opengl.rendering.object3d import Object3D
+from project.gui.opengl.rendering.object3d import Object3D
 
 
 class Light(Object3D):

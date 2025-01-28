@@ -1,10 +1,9 @@
 import time
-from distutils.spawn import spawn
 from typing import Tuple
 
 import cupy as cp
 
-from simulation.fabric import Fabric
+from project.simulation.fabric import Fabric
 
 
 class Simulation:

@@ -1,6 +1,4 @@
 import ctypes
-import math
-from distutils.log import fatal
 
 import numpy as np
 from pyglet.gl import *
@@ -8,13 +6,13 @@ from typing import Tuple, List
 
 import pyglet
 
-from gui.opengl.rendering.camera import Camera
-from gui.opengl.rendering.light import Light
-from gui.opengl.rendering.material import Material
-from gui.opengl.rendering.object3d import Object3D
-from gui.opengl.rendering.renderutils import gen_indices, export_to_obj
-from gui.opengl.rendering.shader import Shader
-from simulation.simulation import Simulation, Fabric
+from project.gui.opengl.rendering.camera import Camera
+from project.gui.opengl.rendering.light import Light
+from project.gui.opengl.rendering.material import Material
+from project.gui.opengl.rendering.object3d import Object3D
+from project.gui.opengl.rendering.renderutils import gen_indices, export_to_obj
+from project.gui.opengl.rendering.shader import Shader
+from project.simulation.simulation import Simulation, Fabric
 
 CAPTION = "Fabric Simulator"
 

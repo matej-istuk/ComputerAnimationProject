@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from gui.opengl.rendering.object3d import Object3D
-from gui.opengl.rendering.utils import look_at, create_perspective_matrix_2
+from project.gui.opengl.rendering.object3d import Object3D
+from project.gui.opengl.rendering.utils import look_at, create_perspective_matrix_2
 
 
 class Camera(Object3D):

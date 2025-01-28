@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np
 
-from gui.opengl.rendering.utils import rotation_matrix, translation_matrix
+from project.gui.opengl.rendering.utils import rotation_matrix, translation_matrix
 
 
 class Object3D:

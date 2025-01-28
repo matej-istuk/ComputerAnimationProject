@@ -5,7 +5,6 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 import pyglet
 
-from gui.opengl.app import SimulationWindow
 from gui.opengl.rendering.material import Material
 from simulation.simulation import Simulation, Fabric
 from simulation.util import StaticPointSetter
